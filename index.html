@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>HabitPro</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-view="dashboard"><i class="fa-solid fa-table-columns"></i> Dashboard</li>
+                <li data-view="settings"><i class="fa-solid fa-list-check"></i> Manage Tasks</li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view active">
+                <header class="view-header">
+                    <div class="title-container">
+                        <h1 id="current-date-title">Today's Habits</h1>
+                        <p>Track your daily activities and maintain your streaks.</p>
+                        
+                        <!-- Day Type Toggle for the currently viewed date -->
+                        <div class="day-type-selector">
+                            <span class="selector-label">Mode:</span>
+                            <div class="segmented-control" id="dashboard-day-type">
+                                <button type="button" class="segment active" data-type="college"><i class="fa-solid fa-graduation-cap"></i> College Day</button>
+                                <button type="button" class="segment" data-type="home"><i class="fa-solid fa-house"></i> Home Day</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="date-nav">
+                        <button id="prev-day"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span id="display-date">May 10</span>
+                        <button id="next-day"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </header>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Daily Progress</h3>
+                        <div class="progress-ring-container">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle class="progress-ring__circle" stroke="var(--ring-bg)" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                                <circle id="daily-ring" class="progress-ring__circle progress-value" stroke="var(--accent)" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                            </svg>
+                            <div class="progress-text" id="daily-text">0%</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Weekly Progress</h3>
+                        <div class="progress-ring-container">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle class="progress-ring__circle" stroke="var(--ring-bg)" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                                <circle id="weekly-ring" class="progress-ring__circle progress-value" stroke="var(--accent-secondary)" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                            </svg>
+                            <div class="progress-text" id="weekly-text">0%</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Monthly Progress</h3>
+                        <div class="progress-ring-container">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle class="progress-ring__circle" stroke="var(--ring-bg)" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                                <circle id="monthly-ring" class="progress-ring__circle progress-value" stroke="var(--success)" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                            </svg>
+                            <div class="progress-text" id="monthly-text">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checklist-container">
+                    <h2>Your Checklist</h2>
+                    <ul id="habit-list" class="habit-list">
+                        <!-- Habits will be injected here by JS -->
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="settings-view" class="view">
+                <header class="view-header">
+                    <div>
+                        <h1>Configure Your Habits</h1>
+                        <p>Set up to 15 key daily tasks for your different modes.</p>
+                    </div>
+                </header>
+                
+                <div class="settings-container">
+                    <div class="settings-tabs">
+                        <button class="tab-btn active" data-tab="college"><i class="fa-solid fa-graduation-cap"></i> College Days Details</button>
+                        <button class="tab-btn" data-tab="home"><i class="fa-solid fa-house"></i> Home Days Details</button>
+                    </div>
+
+                    <form id="habits-form">
+                        <!-- We will keep two grids, hidden/shown based on mode -->
+                        <div id="habit-inputs-college" class="habit-inputs-grid tab-content active">
+                            <!-- College Inputs -->
+                        </div>
+                        <div id="habit-inputs-home" class="habit-inputs-grid tab-content">
+                            <!-- Home Inputs -->
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save All Habits</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
