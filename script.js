@@ -1,21 +1,243 @@
+// ===================================
+// LOGIN PORTAL LOGIC (Multi-User)
+// ===================================
+const HabitProAuth = (function() {
+    const SESSION_KEY = 'habitpro_logged_in';
+    const SESSION_USER = 'habitpro_current_user';
+    const USERS_KEY = 'habitpro_users';
+
+    // Default users list — stored in localStorage so new users can be added
+    function getUsers() {
+        let users = JSON.parse(localStorage.getItem(USERS_KEY));
+        if (!users || users.length === 0) {
+            users = [
+                { username: 'Ravi', password: 'ravi123' }
+            ];
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+        return users;
+    }
+
+    function addUser(username, password) {
+        const users = getUsers();
+        // Check if user already exists (case-insensitive)
+        if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+            return false;
+        }
+        users.push({ username, password });
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        return true;
+    }
+
+    function validateUser(username, password) {
+        const users = getUsers();
+        return users.find(u => u.username === username && u.password === password);
+    }
+
+    function getCurrentUser() {
+        return localStorage.getItem(SESSION_USER) || '';
+    }
+
+    function isLoggedIn() {
+        return localStorage.getItem(SESSION_KEY) === 'true' && getCurrentUser();
+    }
+
+    // User-specific localStorage keys
+    function userKey(key) {
+        const user = getCurrentUser();
+        return user ? `habitpro_${user}_${key}` : key;
+    }
+
+    function logout() {
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(SESSION_USER);
+        location.reload();
+    }
+
+    // Check if already logged in
+    if (isLoggedIn()) {
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('login-overlay');
+            const appContainer = document.getElementById('app-container');
+            if (overlay) overlay.style.display = 'none';
+            if (appContainer) {
+                appContainer.style.display = '';
+                appContainer.classList.add('entering');
+            }
+            // Show welcome name in sidebar
+            const userNameEl = document.getElementById('sidebar-username');
+            if (userNameEl) userNameEl.textContent = getCurrentUser();
+        });
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('login-overlay');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const usernameInput = document.getElementById('login-username');
+            const passwordInput = document.getElementById('login-password');
+            const loginError = document.getElementById('login-error');
+            const loginErrorText = document.getElementById('login-error-text');
+            const loginBtn = document.getElementById('login-btn');
+            const togglePasswordBtn = document.getElementById('toggle-password');
+            const appContainer = document.getElementById('app-container');
+            const particlesContainer = document.getElementById('login-particles');
+
+            // Toggle between Login and Sign Up
+            const showSignupLink = document.getElementById('show-signup');
+            const showLoginLink = document.getElementById('show-login');
+            if (showSignupLink) {
+                showSignupLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loginForm.style.display = 'none';
+                    signupForm.style.display = 'block';
+                    document.getElementById('login-error').classList.remove('show');
+                    document.getElementById('signup-error').classList.remove('show');
+                });
+            }
+            if (showLoginLink) {
+                showLoginLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    signupForm.style.display = 'none';
+                    loginForm.style.display = 'block';
+                    document.getElementById('login-error').classList.remove('show');
+                    document.getElementById('signup-error').classList.remove('show');
+                });
+            }
+
+            // Create animated particles
+            function createParticles() {
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    const size = Math.random() * 6 + 3;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDuration = (Math.random() * 8 + 6) + 's';
+                    particle.style.animationDelay = (Math.random() * 5) + 's';
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            createParticles();
+
+            // Toggle password visibility
+            togglePasswordBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                togglePasswordBtn.querySelector('i').className = isPassword
+                    ? 'fa-solid fa-eye-slash'
+                    : 'fa-solid fa-eye';
+            });
+
+            // Handle LOGIN form submit
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+
+                loginError.classList.remove('show');
+                loginBtn.classList.add('loading');
+
+                setTimeout(() => {
+                    const user = validateUser(username, password);
+                    if (user) {
+                        localStorage.setItem(SESSION_KEY, 'true');
+                        localStorage.setItem(SESSION_USER, user.username);
+
+                        overlay.classList.add('hidden');
+                        setTimeout(() => {
+                            overlay.style.display = 'none';
+                            appContainer.style.display = '';
+                            appContainer.classList.add('entering');
+                            // Show welcome name
+                            const userNameEl = document.getElementById('sidebar-username');
+                            if (userNameEl) userNameEl.textContent = user.username;
+                            // Reload to initialize user-specific data
+                            location.reload();
+                        }, 600);
+                    } else {
+                        loginBtn.classList.remove('loading');
+                        loginErrorText.textContent = 'Invalid username or password. Please try again.';
+                        loginError.classList.add('show');
+
+                        const card = document.getElementById('login-card');
+                        card.style.animation = 'none';
+                        card.offsetHeight;
+                        card.style.animation = 'shakeError 0.5s ease';
+                        setTimeout(() => { card.style.animation = ''; }, 500);
+                    }
+                }, 800);
+            });
+
+            // Handle SIGN UP form submit
+            if (signupForm) {
+                signupForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const newUser = document.getElementById('signup-username').value.trim();
+                    const newPass = document.getElementById('signup-password').value;
+                    const confirmPass = document.getElementById('signup-confirm').value;
+                    const signupError = document.getElementById('signup-error');
+                    const signupErrorText = document.getElementById('signup-error-text');
+
+                    signupError.classList.remove('show');
+
+                    if (newUser.length < 2) {
+                        signupErrorText.textContent = 'Username must be at least 2 characters.';
+                        signupError.classList.add('show');
+                        return;
+                    }
+                    if (newPass.length < 4) {
+                        signupErrorText.textContent = 'Password must be at least 4 characters.';
+                        signupError.classList.add('show');
+                        return;
+                    }
+                    if (newPass !== confirmPass) {
+                        signupErrorText.textContent = 'Passwords do not match.';
+                        signupError.classList.add('show');
+                        return;
+                    }
+
+                    const added = addUser(newUser, newPass);
+                    if (added) {
+                        // Auto-login after sign up
+                        localStorage.setItem(SESSION_KEY, 'true');
+                        localStorage.setItem(SESSION_USER, newUser);
+                        location.reload();
+                    } else {
+                        signupErrorText.textContent = 'This username is already taken.';
+                        signupError.classList.add('show');
+                    }
+                });
+            }
+
+            setTimeout(() => usernameInput.focus(), 300);
+        });
+    }
+
+    return { getCurrentUser, userKey, logout, isLoggedIn };
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- State ---
+    // --- State (user-specific using HabitProAuth.userKey) ---
+    const uk = HabitProAuth.userKey;
+
     // Handle legacy migration from an array to our new structure
-    let legacyHabits = JSON.parse(localStorage.getItem('habits'));
+    let legacyHabits = JSON.parse(localStorage.getItem(uk('habits')));
     let defaultHabits = { college: [], home: [] };
     
     if (Array.isArray(legacyHabits)) {
         defaultHabits.college = legacyHabits; 
-        defaultHabits.home = legacyHabits; // Clone them over to start user off
-        localStorage.removeItem('habits'); // Remove old key to prevent migration issues later
+        defaultHabits.home = legacyHabits;
+        localStorage.removeItem(uk('habits'));
     }
     
-    let habitsMap = JSON.parse(localStorage.getItem('habitsMap')) || defaultHabits;
+    let habitsMap = JSON.parse(localStorage.getItem(uk('habitsMap'))) || defaultHabits;
     
     // Day Types: 'YYYY-MM-DD' -> 'college' or 'home'. Defaults to 'college' if not set.
-    let dayTypes = JSON.parse(localStorage.getItem('dayTypes')) || {};
+    let dayTypes = JSON.parse(localStorage.getItem(uk('dayTypes'))) || {};
     
-    let completionData = JSON.parse(localStorage.getItem('completionData')) || {}; 
+    let completionData = JSON.parse(localStorage.getItem(uk('completionData'))) || {}; 
     
     let currentDate = new Date();
 
@@ -99,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Update state
                 dayTypes[dateStr] = type;
-                localStorage.setItem('dayTypes', JSON.stringify(dayTypes));
+                localStorage.setItem(uk('dayTypes'), JSON.stringify(dayTypes));
                 
                 // Force Update dashboard which will recalculate everything and re-render checklist
                 updateDashboard();
@@ -182,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
             habitsMap[category] = newHabits;
         });
 
-        localStorage.setItem('habitsMap', JSON.stringify(habitsMap));
+        localStorage.setItem(uk('habitsMap'), JSON.stringify(habitsMap));
         
         // Return to dash
         document.querySelector('li[data-view="dashboard"]').click();
@@ -259,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
             completionData[dateStr].push(habitId);
         }
 
-        localStorage.setItem('completionData', JSON.stringify(completionData));
+        localStorage.setItem(uk('completionData'), JSON.stringify(completionData));
         
         updateDashboard();
     }
